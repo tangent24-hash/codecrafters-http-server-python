@@ -42,31 +42,62 @@ def handle_request(client_socket, directory):
                         b"\r\n\r\n" + user_agent_bytes
 
             elif paths[1] == "files":
-                # Extract requested filename from the path
-                # path format: /files/<filename>
-                requested_file = paths[2]
+                if method == "GET":
+                    # Extract requested filename from the path
+                    # path format: /files/<filename>
+                    requested_file = paths[2]
 
-                # Construct the absolute file path based on directory
-                file_path = os.path.join(directory, requested_file)
-                print("File path:", file_path)
+                    # Construct the absolute file path based on directory
+                    file_path = os.path.join(directory, requested_file)
+                    print("File path:", file_path)
 
-                # Check if file exists
-                if os.path.isfile(file_path):
-                    print("File exists")
-                    # Prepare successful response with file content
-                    with open(file_path, "rb") as file:
-                        file_content = file.read()
-                    content_length = len(file_content)
-                    response = (
-                        b"HTTP/1.1 200 OK\r\n"
-                        b"Content-Type: application/octet-stream\r\n"
-                        b"Content-Length: " +
-                        str(content_length).encode() + b"\r\n\r\n"
-                        + file_content
-                    )
-                else:
-                    # File not found
-                    response = b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n"
+                    # Check if file exists
+                    if os.path.isfile(file_path):
+                        print("File exists")
+                        # Prepare successful response with file content
+                        with open(file_path, "rb") as file:
+                            file_content = file.read()
+                        content_length = len(file_content)
+                        response = (
+                            b"HTTP/1.1 200 OK\r\n"
+                            b"Content-Type: application/octet-stream\r\n"
+                            b"Content-Length: " +
+                            str(content_length).encode() + b"\r\n\r\n"
+                            + file_content
+                        )
+                    else:
+                        # File not found
+                        response = b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n"
+                elif method == "POST":
+                    # Extract requested filename from the path
+                    requested_file = paths[2]
+
+                    # Construct the absolute file path based on directory
+                    file_path = os.path.join(directory, requested_file)
+
+                    # Extract file content from request body
+                    content_length = 0
+                    file_content = lines[-1].encode()  # Last line is the body content
+
+                    for line in lines:
+                        if line.startswith("Content-Length:"):
+                            content_length = int(line.split()[1])
+                   
+                    # Check if content length matches received data
+                    if len(file_content) != content_length:
+                        print("Content length mismatch", len(
+                            file_content), content_length)
+                        response = b"HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n"
+                    else:
+                        # Save the file
+                        try:
+                            with open(file_path, "wb") as file:
+                                file.write(file_content)
+                            response = b"HTTP/1.1 201 Created\r\nContent-Length: 0\r\n\r\n"
+                        except OSError as e:
+                            print(f"Error saving file: {e}")
+                            response = b"HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n"
+
             else:
                 response = b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n"
     else:
@@ -90,7 +121,7 @@ def main():
 
     if len(sys.argv) < 3 or sys.argv[1] != "--directory":
         print("Usage: your_server.sh --directory <directory>")
-        
+
     else:
         directory = sys.argv[2]
 
