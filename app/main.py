@@ -1,6 +1,6 @@
 # Uncomment this to pass the first stage
 import socket
-
+import threading
 
 def handle_request(client_socket):
     request = client_socket.recv(1024)
@@ -63,41 +63,17 @@ def main():
     server_socket = socket.create_server(("localhost", 4221), reuse_port=False)
 
     try:
-
-        client_socket = None
-
         while True:
+            client_socket, client_addr = server_socket.accept()
+            print("Connection from", client_addr)
 
-            try:
-
-                client_socket, client_addr = server_socket.accept()
-
-                handle_request(client_socket)
-
-            except socket.timeout:
-
-                pass
-
-            except IOError as msg:
-
-                print(msg)
-
-                server_socket.close()
-
-                print("Server shut down")
-
-                break
-
-            finally:
-
-                if client_socket:
-
-                    client_socket.close()
+            # Create a new thread to handle the connection
+            thread = threading.Thread(
+                target=handle_request, args=(client_socket,))
+            thread.start()
 
     except KeyboardInterrupt:
-
         server_socket.close()
-
         print("Server shut down")
 
 
