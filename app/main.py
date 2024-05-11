@@ -19,12 +19,30 @@ def handle_request(client_socket):
 
     if path == "/":
         response = b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"
+    elif path == "/user-agent":
+        # Extract User-Agent header
+        user_agent = None
+        for line in lines:
+            if line.lower().startswith("user-agent:"):  # Case-insensitive header check
+                # Get the value after colon
+                user_agent = line.split(":")[1].strip()
+
+        if user_agent:
+            # Prepare response with User-Agent in body
+            user_agent_bytes = user_agent.encode()
+            content_length = len(user_agent_bytes)
+            response = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + \
+                       str(content_length).encode() + \
+                b"\r\n\r\n" + user_agent_bytes
     else:
         paths = path.split("/")
         if paths[1] == "echo":
             length = len(paths[2])
             response = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + \
                 str(length).encode() + b"\r\n\r\n" + paths[2].encode()
+        elif paths[1] == "user-agent":
+
+            response = b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"
         else:
             response = b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n"
 
