@@ -20,7 +20,13 @@ def handle_request(client_socket):
     if path == "/":
         response = b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"
     else:
-        response = b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n"
+        paths = path.split("/")
+        if paths[1] == "echo":
+            length = len(paths[2])
+            response = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + \
+                str(length).encode() + b"\r\n\r\n" + paths[2].encode()
+        else:
+            response = b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n"
 
     client_socket.sendall(response)
 
