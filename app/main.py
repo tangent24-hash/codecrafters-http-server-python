@@ -1,4 +1,4 @@
-# Uncomment this to pass the first stage
+
 import socket
 import os
 import sys
@@ -8,18 +8,19 @@ import threading
 def handle_request(client_socket, directory):
     request = client_socket.recv(1024)
     print(request.decode("utf-8"))
+
     response = None
     lines = request.decode("utf-8").split("\r\n")
     if lines:
         first_line = lines[0]
-        print(first_line)
+
         method, path, http_version = first_line.split()
 
         if path == "/":
             response = b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"
         else:
             paths = path.split("/")
-            print(paths)
+
             if paths[1] == "echo":
                 length = len(paths[2])
                 response = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + \
@@ -49,12 +50,8 @@ def handle_request(client_socket, directory):
 
                     # Construct the absolute file path based on directory
                     file_path = os.path.join(directory, requested_file)
-                    print("File path:", file_path)
 
-                    # Check if file exists
                     if os.path.isfile(file_path):
-                        print("File exists")
-                        # Prepare successful response with file content
                         with open(file_path, "rb") as file:
                             file_content = file.read()
                         content_length = len(file_content)
@@ -77,12 +74,13 @@ def handle_request(client_socket, directory):
 
                     # Extract file content from request body
                     content_length = 0
-                    file_content = lines[-1].encode()  # Last line is the body content
+                    # Last line is the body content
+                    file_content = lines[-1].encode()
 
                     for line in lines:
                         if line.startswith("Content-Length:"):
                             content_length = int(line.split()[1])
-                   
+
                     # Check if content length matches received data
                     if len(file_content) != content_length:
                         print("Content length mismatch", len(
