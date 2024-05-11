@@ -86,11 +86,13 @@ def handle_request(client_socket, directory):
 def main():
     # Create a new socket
     server_socket = socket.create_server(("localhost", 4221), reuse_port=False)
+    directory = None
 
     if len(sys.argv) < 3 or sys.argv[1] != "--directory":
         print("Usage: your_server.sh --directory <directory>")
-        return
-    directory = sys.argv[2]
+        
+    else:
+        directory = sys.argv[2]
 
     try:
         while True:
