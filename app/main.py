@@ -4,18 +4,30 @@ import socket
 
 def handle_request(client_socket):
     request = client_socket.recv(1024)
-    print(request)
-    response = b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"
+    print(request.decode("utf-8"))
+
+    lines = request.decode("utf-8").split("\r\n")
+    if lines:
+        first_line = lines[0]
+        print(first_line)
+        method, path, http_version = first_line.split()
+    else:
+        # Handle invalid request format
+        response = b"HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n"
+        client_socket.sendall(response)
+        return
+
+    if path == "/":
+        response = b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"
+    else:
+        response = b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n"
+
     client_socket.sendall(response)
 
-    print("Request received")
-    print(request.decode("utf-8"))
     print("Response sent")
     print(response.decode("utf-8"))
 
     return True
-
-    client_socket.close()
 
 
 def main():
