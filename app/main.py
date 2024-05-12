@@ -41,7 +41,7 @@ def handle_request(client_socket, directory):
 
                 if encoding:
                     # Compress the response with gzip
-                    response_text = gzip.compress(paths[2])
+                    response_text = gzip.compress(paths[2].encode())
                     length = len(response_text)
 
                     content_encoding_header = b"Content-Encoding: " + encoding.encode() + b"\r\n"
@@ -51,7 +51,7 @@ def handle_request(client_socket, directory):
                     + content_encoding_header
                     + b"Content-Type: text/plain\r\n"
                     + b"Content-Length: " + str(length).encode() + b"\r\n\r\n"
-                    + response_text.encode()
+                    + response_text
                 )
 
             elif paths[1] == "user-agent":
