@@ -3,6 +3,7 @@ import socket
 import os
 import sys
 import threading
+import gzip
 
 
 def handle_request(client_socket, directory):
@@ -22,12 +23,11 @@ def handle_request(client_socket, directory):
             paths = path.split("/")
 
             if paths[1] == "echo":
-                length = len(paths[2])
 
                 # Check for supported encoding in Accept-Encoding header
-                supported_encoding = "gzip"  
+                supported_encoding = "gzip"
                 encoding = None
-                
+
                 for line in lines:
                     if line.lower().startswith("accept-encoding:"):
                         encodings = line.split(":")[1].strip().split(",")
@@ -38,7 +38,12 @@ def handle_request(client_socket, directory):
 
                 # Set Content-Encoding header only if supported encoding is found
                 content_encoding_header = b""
+
                 if encoding:
+                    # Compress the response with gzip
+                    response_text = gzip.compress(paths[2])
+                    length = len(response_text)
+
                     content_encoding_header = b"Content-Encoding: " + encoding.encode() + b"\r\n"
 
                 response = (
@@ -46,7 +51,7 @@ def handle_request(client_socket, directory):
                     + content_encoding_header
                     + b"Content-Type: text/plain\r\n"
                     + b"Content-Length: " + str(length).encode() + b"\r\n\r\n"
-                    + paths[2].encode()
+                    + response_text.encode()
                 )
 
             elif paths[1] == "user-agent":
