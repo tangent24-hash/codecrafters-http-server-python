@@ -23,8 +23,31 @@ def handle_request(client_socket, directory):
 
             if paths[1] == "echo":
                 length = len(paths[2])
-                response = b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + \
-                    str(length).encode() + b"\r\n\r\n" + paths[2].encode()
+
+                # Check for supported encoding in Accept-Encoding header
+                supported_encoding = "gzip"  
+                encoding = None
+                
+                for line in lines:
+                    if line.lower().startswith("accept-encoding:"):
+                        encodings = line.split(":")[1].strip().split(",")
+                        for enc in encodings:
+                            if enc.strip() == supported_encoding:
+                                encoding = enc.strip()
+                                break
+
+                # Set Content-Encoding header only if supported encoding is found
+                content_encoding_header = b""
+                if encoding:
+                    content_encoding_header = b"Content-Encoding: " + encoding.encode() + b"\r\n"
+
+                response = (
+                    b"HTTP/1.1 200 OK\r\n"
+                    + content_encoding_header
+                    + b"Content-Type: text/plain\r\n"
+                    + b"Content-Length: " + str(length).encode() + b"\r\n\r\n"
+                    + paths[2].encode()
+                )
 
             elif paths[1] == "user-agent":
                 # Extract User-Agent header
