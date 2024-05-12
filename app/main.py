@@ -46,13 +46,14 @@ def handle_request(client_socket, directory):
 
                     content_encoding_header = b"Content-Encoding: " + encoding.encode() + b"\r\n"
 
-                response = (
-                    b"HTTP/1.1 200 OK\r\n"
-                    + content_encoding_header
-                    + b"Content-Type: text/plain\r\n"
-                    + b"Content-Length: " + str(length).encode() + b"\r\n\r\n"
-                    + response_text
-                )
+                    response = (
+                        b"HTTP/1.1 200 OK\r\n"
+                        + content_encoding_header
+                        + b"Content-Type: text/plain\r\n"
+                        + b"Content-Length: " +
+                        str(length).encode() + b"\r\n\r\n"
+                        + response_text
+                    )
 
             elif paths[1] == "user-agent":
                 # Extract User-Agent header
