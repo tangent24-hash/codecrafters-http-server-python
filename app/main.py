@@ -38,22 +38,24 @@ def handle_request(client_socket, directory):
 
                 # Set Content-Encoding header only if supported encoding is found
                 content_encoding_header = b""
+                length = len(paths[2])
+                response_text = paths[2].encode()
 
                 if encoding:
                     # Compress the response with gzip
-                    response_text = gzip.compress(paths[2].encode())
+                    response_text = gzip.compress(response_text)
                     length = len(response_text)
 
                     content_encoding_header = b"Content-Encoding: " + encoding.encode() + b"\r\n"
 
-                    response = (
-                        b"HTTP/1.1 200 OK\r\n"
-                        + content_encoding_header
-                        + b"Content-Type: text/plain\r\n"
-                        + b"Content-Length: " +
-                        str(length).encode() + b"\r\n\r\n"
-                        + response_text
-                    )
+                response = (
+                    b"HTTP/1.1 200 OK\r\n"
+                    + content_encoding_header
+                    + b"Content-Type: text/plain\r\n"
+                    + b"Content-Length: " +
+                    str(length).encode() + b"\r\n\r\n"
+                    + response_text
+                )
 
             elif paths[1] == "user-agent":
                 # Extract User-Agent header
